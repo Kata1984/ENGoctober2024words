@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Englannin kielen oppimispeli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+        }
+        .game-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        .feedback {
+            margin: 10px 0;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Englannin oppimispeli</h1>
+        <p id="word-display">Sana suomeksi: <span id="finnish-word"></span></p>
+        <input type="text" id="answer" placeholder="Kirjoita englanninkielinen sana" />
+        <div class="feedback" id="feedback"></div>
+        <button id="submit-answer">Tarkista vastaus</button>
+        <button id="next-word" disabled>Seuraava sana</button>
+
+        <div id="summary" class="summary" style="display: none;">
+            <h2>Yhteenveto</h2>
+            <p id="correct-answers"></p>
+            <p id="incorrect-answers"></p>
+            <button id="start-over">Aloita alusta</button>
+        </div>
+    </div>
+
+    <script>
+        // Lisää tähän aiemmin luotu JavaScript-taulukko sanoista
+        const words = [
+    { finnish: 'tie', english: 'a road' },
+    { finnish: 'äiti', english: 'Mom (AmE)' },
+    { finnish: 'muuttaa', english: 'move' },
+    { finnish: 'Yhdysvallat', english: 'the US, the USA, the States' },
+    { finnish: 'matka', english: 'a trip' },
+    { finnish: 'koko matkan', english: 'all the way' },
+    { finnish: 'työpaikka', english: 'a job' },
+    { finnish: 'isäpuoli', english: 'a stepfather' },
+    { finnish: 'tulee (tulevaisuudessa)', english: 'will come' },
+    { finnish: 'lähteä tien päälle', english: 'hit the road' },
+    { finnish: 'tervehdys', english: 'a greeting' },
+    { finnish: 'Amerikka', english: 'America' },
+    { finnish: 'Kansas (osavaltio Yhdysvalloissa)', english: 'Kansas' },
+    { finnish: 'siirtyä', english: 'move over' },
+    { finnish: 'motelli', english: 'a motel' },
+    { finnish: 'kaveri', english: 'a mate' },
+    { finnish: 'menemme', english: 'we are going' },
+    { finnish: 'Seattle (kaupunki Yhdysvalloissa)', english: 'Seattle' },
+    { finnish: 'osavaltio', english: 'a state' },
+    { finnish: 'postata, lähettää', english: 'post' },
+    { finnish: 'kulkea kohti', english: 'bound for' },
+    { finnish: 'ensimmäinen', english: 'the first' },
+    { finnish: 'jäädä kyydistä', english: 'miss' },
+    { finnish: 'suunnata pitkin raidetta', english: 'head down the track' },
+    { finnish: 'lentokone', english: 'a plane' },
+    { finnish: 'lautta', english: 'a ferry' },
+    { finnish: 'juna', english: 'a train' },
+    { finnish: 'vene', english: 'a boat' },
+    { finnish: 'matkailuauto', english: 'a camper' },
+    { finnish: 'pakettiauto', english: 'a van' },
+    { finnish: 'maastopyörä', english: 'a mountain bike' },
+    { finnish: 'maili', english: 'a mile' },
+    { finnish: 'taksi', english: 'a cab (AmE)' },
+    { finnish: 'raitiovaunu', english: 'a tram' },
+    { finnish: 'rekka', english: 'a truck (AmE)' },
+    { finnish: 'urheiluauto', english: 'a sports car' },
+    { finnish: 'moottoripyörä', english: 'a motorcycle' },
+    { finnish: 'autolla', english: 'by car' },
+    { finnish: 'lautalla', english: 'by ferry' },
+    { finnish: 'rekalla', english: 'by truck' },
+    { finnish: 'veneellä', english: 'by boat' },
+    { finnish: 'kuinka', english: 'how' },
+    { finnish: 'missä', english: 'where' },
+    { finnish: 'kuinka kaukana?', english: 'how far?' },
+    { finnish: 'Lahdesta Helsinkiin', english: 'from Lahti to Helsinki' },
+    { finnish: 'mainostaulu', english: 'a billboard' },
+    { finnish: 'biisoni', english: 'a buffalo' },
+    { finnish: 'vuori', english: 'a mountain' },
+    { finnish: 'tasainen', english: 'flat' },
+    { finnish: 'Colorado (osavaltio Yhdysvalloissa)', english: 'Colorado' },
+    { finnish: 'Kalliovuoret', english: 'the Rocky Mountains' },
+    { finnish: 'pitäen silmällä', english: 'keep my eye on' },
+    { finnish: 'liikenne', english: 'traffic' },
+    { finnish: 'oikea puoli', english: 'the right side' },
+    { finnish: 'kaista', english: 'a lane' },
+    { finnish: 'moottoritie', english: 'a motorway (BrE)' },
+    { finnish: 'valtatie', english: 'a highway (AmE)' },
+    { finnish: 'pienempi', english: 'smaller' },
+    { finnish: 'kulta (hellittelynimi)', english: 'honey' },
+    { finnish: 'liikennemerkki', english: 'a road sign' },
+    { finnish: 'valtava', english: 'gigantic' },
+    { finnish: 'tiellä', english: 'in the way' },
+    { finnish: 'toinen', english: 'another one' },
+    { finnish: 'rekan pysähdyspaikka', english: 'a truck-stop' },
+    { finnish: 'tarvita', english: 'need' },
+    { finnish: 'pitää tauko', english: 'take a break' },
+    { finnish: 'cowboy', english: 'a cowboy' },
+    { finnish: 'kaupunki', english: 'a town' },
+    { finnish: 'pidempi kuin', english: 'longer than' },
+    { finnish: 'kilometri', english: 'a kilometer (AmE)' },
+    { finnish: 'syrjässä', english: 'out of the way' },
+    { finnish: 'suoraan', english: 'straight' },
+    { finnish: 'väkiluku', english: 'a population' },
+    { finnish: 'aion', english: "I'm going to" },
+    { finnish: 'selfie', english: 'a selfie' },
+    { finnish: 'mahtava', english: 'awesome' },
+    { finnish: 'polku', english: 'a path' },
+    { finnish: 'katu', english: 'a street' },
+    { finnish: 'liikenneympyrä', english: 'a roundabout' },
+    { finnish: 'jalkakäytävä', english: 'a pavement' },
+    { finnish: 'etupenkki', english: 'a front seat' },
+    { finnish: 'takapenkki', english: 'a back seat' },
+    { finnish: 'turvavyö', english: 'a seat belt' },
+    { finnish: 'suojatie', english: 'a zebra crossing' },
+    { finnish: 'hotellissa', english: 'at the hotel' },
+    { finnish: 'aula', english: 'a lobby' },
+    { finnish: 'uima-allas', english: 'a pool' },
+    { finnish: 'hissi', english: 'an elevator' },
+    { finnish: 'aamiaishuone', english: 'a breakfast room' },
+    { finnish: 'hotellihuone', english: 'a hotel room' },
+    { finnish: 'pelihuone', english: 'a game room' },
+    { finnish: 'kylpyhuoneessa', english: 'in the bathroom' },
+    { finnish: 'hammasharja', english: 'a toothbrush' },
+    { finnish: 'hammastahna', english: 'toothpaste' },
+    { finnish: 'kampa', english: 'a comb' },
+    { finnish: 'hiusharja', english: 'a hairbrush' },
+    { finnish: 'aurinkorasva', english: 'sunblock' },
+    { finnish: 'shampoo', english: 'shampoo' },
+    { finnish: 'suihkugeeli', english: 'shower gel' },
+    { finnish: 'deodorantti', english: 'deodorant' },
+    { finnish: 'ensimmäinen', english: 'the first' },
+    { finnish: 'toinen', english: 'the second' },
+    { finnish: 'kolmas', english: 'the third' },
+    { finnish: 'neljäs', english: 'the fourth' },
+    { finnish: 'viides', english: 'the fifth' },
+    { finnish: 'kuudes', english: 'the sixth' },
+    { finnish: 'seitsemäs', english: 'the seventh' },
+    { finnish: 'kahdeksas', english: 'the eighth' },
+    { finnish: 'yhdeksäs', english: 'the ninth' },
+    { finnish: 'kymmenes', english: 'the tenth' },
+    { finnish: 'yhdestoista', english: 'the eleventh' },
+    { finnish: 'kahdestoista', english: 'the twelfth' },
+    { finnish: 'kahdestoista', english: 'the twelfth' },
+    { finnish: 'kahdeskymmenes', english: 'the twentieth' },
+    { finnish: 'kaksikymmentäyksi', english: 'twenty-one' },
+    { finnish: 'kahdeskymmenesensimmäinen', english: 'the twenty-first' },
+    { finnish: 'kaksikymmentäkaksi', english: 'twenty-two' },
+    { finnish: 'kahdeskymmenesensimmäinen', english: 'the twenty-second' },
+    { finnish: 'kaksikymmentäkolme', english: 'twenty-three' },
+    { finnish: 'kahdeskymmeneskolmas', english: 'the twenty-third' },
+    { finnish: 'lentokentällä', english: 'at the airport' },
+    { finnish: 'lippu', english: 'a ticket' },
+    { finnish: 'matkalaukku', english: 'a suitcase' },
+    { finnish: 'matkatavarat', english: 'luggage' },
+    { finnish: 'turvatarkastus', english: 'security check' },
+    { finnish: 'passintarkastus', english: 'passport control' },
+    { finnish: 'portti', english: 'a gate' },
+    { finnish: 'veroton myymälä', english: 'a duty-free shop' },
+    { finnish: 'maihinnousukortti', english: 'a boarding pass' },
+    { finnish: 'passi', english: 'a passport' },
+    { finnish: 'reppu', english: 'a backpack' },
+    { finnish: 'vetolaukku', english: 'a trolley bag' },
+    { finnish: 'nimilappu', english: 'a name tag' },
+    { finnish: 'lompakko', english: 'a wallet' },
+    { finnish: 'aamupäivällä (a.m.)', english: 'a.m.' },
+    { finnish: 'iltapäivällä (p.m.)', english: 'p.m.' },
+    { finnish: 'sisäänkirjautuminen', english: 'check-in' },
+    { finnish: 'Heathrow (lentokenttä Lontoossa)', english: 'Heathrow' },
+    { finnish: 'terminaali', english: 'a terminal' },
+    { finnish: 'ikuisesti', english: 'forever' },
+    { finnish: 'seisonta, odotus', english: 'stand' },
+    { finnish: 'kärsivällinen', english: 'patient' },
+    { finnish: 'kolikko', english: 'a coin' },
+    { finnish: 'fiksu', english: 'smart' },
+    { finnish: 'jono', english: 'a queue' },
+    { finnish: 'tulosta', english: 'print out' },
+    { finnish: 'kone', english: 'a machine' },
+    { finnish: 'sukunimi', english: 'a last name' },
+    { finnish: 'etunimi', english: 'a first name' },
+    { finnish: 'lähtö', english: 'a departure' },
+    { finnish: 'kohde', english: 'a destination' },
+    { finnish: 'saapuminen', english: 'an arrival' },
+    { finnish: 'paikallinen', english: 'local' },
+    { finnish: 'valmis', english: 'done' },
+    { finnish: 'lento', english: 'a flight' },
+    { finnish: 'jatkaa', english: 'continue' },
+    { finnish: 'unohdin', english: 'I forgot' },
+    { finnish: 'nousta ilmaan', english: 'take off' },
+    { finnish: 'laskeutua', english: 'land' },
+    { finnish: 'jäädä', english: 'stay' },
+    { finnish: 'nousta lentokoneeseen', english: 'get on the plane' },
+    { finnish: 'ilman', english: 'without' },
+    { finnish: 'myöhästyä lennolta', english: 'miss a plane' },
+    { finnish: 'lupaus', english: 'promise' },
+    { finnish: 'vyö', english: 'a belt' },
+    { finnish: 'tyhjä', english: 'empty' },
+    { finnish: 'ongelma', english: 'a problem' },
+    { finnish: 'kello', english: 'a watch' },
+    { finnish: 'minä olin', english: 'I was' },
+    { finnish: 'sinä olit', english: 'you were' },
+    { finnish: 'hän (poika) oli', english: 'he was' },
+    { finnish: 'hän (tyttö) oli', english: 'she was' },
+    { finnish: 'se oli', english: 'it was' },
+    { finnish: 'me olimme', english: 'we were' },
+    { finnish: 'te olitte', english: 'you were' },
+    { finnish: 'he/ne olivat', english: 'they were' },
+    { finnish: 'minä en ollut', english: "I wasn't" },
+    { finnish: 'sinä et ollut', english: "you weren't" },
+    { finnish: 'hän (poika) ei ollut', english: "he wasn't" },
+    { finnish: 'hän (tyttö) ei ollut', english: "she wasn't" },
+    { finnish: 'se ei ollut', english: "it wasn't" },
+    { finnish: 'me emme olleet', english: "we weren't" },
+    { finnish: 'te ette olleet', english: "you weren't" },
+    { finnish: 'he/ne eivät olleet', english: "they weren't" },
+    { finnish: 'olinko minä', english: 'was I' },
+    { finnish: 'olitko sinä / olitteko te', english: 'were you' },
+    { finnish: 'oliko hän (poika)', english: 'was he' },
+    { finnish: 'oliko hän (tyttö)', english: 'was she' },
+    { finnish: 'oliko se', english: 'was it' },
+    { finnish: 'olimmeko me', english: 'were we' },
+    { finnish: 'olivatko he/ne', english: 'were they' },
+    { finnish: 'he ovat lähdössä', english: "they're off" },
+    { finnish: 'mennä hissillä', english: 'take a lift' },
+    { finnish: 'sitä kutsutaan', english: 'they call it' },
+    { finnish: 'kaivata', english: 'miss' },
+    { finnish: 'myöhässä', english: 'late' },
+    { finnish: 'mennä taksilla', english: 'take a taxi' },
+    { finnish: 'sen sijaan', english: 'instead' },
+    { finnish: 'pohjakerros, katutaso', english: 'the ground floor (BrE)' },
+    { finnish: 'ulos', english: 'out' },
+    { finnish: 'tuolla ylhäällä', english: 'up there' },
+    { finnish: 'älä pelkää', english: "don't be afraid" },
+    { finnish: 'koko ajan', english: 'all the time' },
+    { finnish: 'päiväunet', english: 'a nap' },
+    { finnish: 'sinä tulet pitämään', english: 'you will like' },
+    { finnish: 'koko matkan ajan', english: 'the whole way' },
+        ];
+
+        let currentWordIndex = 0;
+        let correctAnswers = [];
+        let incorrectAnswers = [];
+        let usedWords = [];
+        let currentRoundWords = [];
+
+        // Sekoita sanat satunnaiseen järjestykseen
+        function shuffleWords() {
+            return words.sort(() => 0.5 - Math.random());
+        }
+
+        // Aloita uusi kierros 10 satunnaisella sanalla
+        function startNewRound() {
+            currentRoundWords = shuffleWords().slice(0, 10);
+            usedWords = [];
+            correctAnswers = [];
+            incorrectAnswers = [];
+            currentWordIndex = 0;
+            document.getElementById('summary').style.display = 'none';
+            showNextWord();
+        }
+
+        // Näytä seuraava sana
+        function showNextWord() {
+            if (currentWordIndex < currentRoundWords.length) {
+                const word = currentRoundWords[currentWordIndex];
+                document.getElementById('finnish-word').textContent = word.finnish;
+                document.getElementById('answer').value = '';
+                document.getElementById('feedback').textContent = '';
+                document.getElementById('next-word').disabled = true;
+            } else {
+                showSummary();
+            }
+        }
+
+        // Tarkista vastaus
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim().toLowerCase();
+            const correctAnswer = currentRoundWords[currentWordIndex].english.toLowerCase();
+            
+            if (userAnswer === correctAnswer) {
+                document.getElementById('feedback').textContent = 'Oikein!';
+                correctAnswers.push(currentRoundWords[currentWordIndex]);
+            } else {
+                document.getElementById('feedback').textContent = `Väärin! Oikea vastaus on: ${currentRoundWords[currentWordIndex].english}`;
+                incorrectAnswers.push(currentRoundWords[currentWordIndex]);
+            }
+
+            document.getElementById('next-word').disabled = false;
+            currentWordIndex++;
+        }
+
+        // Näytä yhteenveto
+        function showSummary() {
+            document.getElementById('summary').style.display = 'block';
+            document.getElementById('correct-answers').textContent = `Oikein: ${correctAnswers.length}/${currentRoundWords.length}`;
+            document.getElementById('incorrect-answers').textContent = `Harjoitusta kaipaavat: ${incorrectAnswers.length}/${currentRoundWords.length}`;
+        }
+
+        // Aloita alusta
+        document.getElementById('start-over').addEventListener('click', startNewRound);
+
+        // Tapahtumat tarkistamiseen ja seuraavan sanan näyttämiseen
+        document.getElementById('submit-answer').addEventListener('click', checkAnswer);
+        document.getElementById('next-word').addEventListener('click', showNextWord);
+
+        // Aloita peli
+        startNewRound();
+    </script>
+
+</body>
+</html>
